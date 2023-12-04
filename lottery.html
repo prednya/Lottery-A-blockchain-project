@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lottery</title>
+  <style>
+	@import url('https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+	div[name="hide"]{
+		display: none;
+	}
+    body {
+        padding: 50px;
+        background: linear-gradient(120deg, #3498db, #9b59b6); /* Neutral background gradient */
+        color: #2c3e50; /* Dark text color for contrast */
+		    font-family: 'Lexend Deca', sans-serif;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        color: #fff;
+        text-align: center;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .playersList{
+      box-shadow: none;
+    }
+
+    button {
+        background-color: #2980b9; /* Cool blue color */
+        border: none;
+        padding: 12px 24px;
+        margin: 15px 10px 15px 0; /* Right margin for side-by-side buttons */
+        cursor: pointer;
+        border-radius: 12px;
+        font-size: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        margin: 10px auto;
+    }
+
+    button:hover {
+        background-color: #2471a3; /* Darker blue on hover */
+        transform: translateY(-2px);
+        box-shadow: 0 7px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    input[type="text"] {
+        padding: 12px;
+        border: 1px solid #ddd; /* subtle border */
+        border-radius: 12px;
+        width: 300px;
+        margin: 10px 0;
+        font-size: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s;
+        margin: 10px auto;
+    }
+
+    input[type="text"]:focus {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        outline: none;
+    }
+
+    
+    div {
+        /* background-color: #ffffff; */
+        background-color: #f2f2f2;
+        border-radius: 15px;
+        padding: 30px !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+
+    #winnerInfo {
+        background-color: #2ecc71; 
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    span {
+        font-weight: bold;
+        color: #e67e22; /* Orange color for highlights */
+    }
+</style>
+</head>
+<body>
+  <h1>Lottery</h1>
+<div style="display: flex; flex-direction: row; background: none; justify-content: space-around; box-shadow: none;">
+  <div style="display: flex; flex-direction: column; width:35vw;">
+      <h4>Participate in the lottery:</h4>
+      <input type="text" id="userAddress" placeholder="Enter your Ethereum address">
+      <button id="participateButton" style="width: 16rem;color: #fff">Participate</button>
+      <div id="participateRes" name="hide"></div>
+  </div>
+  <div class="" style="width:35vw;">
+	<h4>Players enrolled in tournament:</h4>
+	
+	<button id="getPlayersButton" style="width: 16rem;color: #fff;margin-left: 140px">Get Players</button>
+	<div id="playersList" name="hide"></div>
+  </div>
+</div>
+<div style="display: flex; flex-direction: row; justify-content: space-around; background:none; box-shadow: none;">
+  <div style="display: flex; flex-direction: column; width: 35vw;">
+      <h4>Check if an address is a participant:</h4>
+      <input type="text" id="checkParticipantAddress" placeholder="Enter Ethereum address">
+      <button id="checkParticipantButton" style="width: 16rem;color: #fff">Check</button>
+      <div id="isParticipantResult" name="hide"></div>
+      <button id="getNumberOfParticipantsButton" style="width: 16rem;color: #fff">Get Number of Participants</button>
+      <div id="numParticipants" name="hide"></div>
+      <button id="getBalanceButton" style="width: 16rem;color: #fff">Get Contract Balance</button>
+      <div id="contractBalance" name="hide"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column;width:35vw">
+      <h4>Enter an Ethereum address to get its balance:</h4>
+      <input type="text" id="checkBalanceAddress" placeholder="Enter Ethereum address">
+      <button id="checkBalanceButton" style="width:16rem;color: #fff">Check Balance</button>
+      <div id="balanceResult" name="hide"></div>
+  </div>
+</div>
+  <div style="width: 75.7rem; margin-left: 60px;">
+      <h4>Pick a Winner:</h4>
+      <button id="pickWinnerButton" style="width: 16rem;color: #fff;margin-left: 470px">Pick Winner</button>
+  </div>
+
+  <div id="message" name="hide"></div>
+  <div id="winnerInfo" style="width: 75.7rem; margin-left: 60px;">
+      <h4>Winner's Address: <span id="winnerAddress"></span></h4>
+      <h4>Winner's Balance: <span id="winnerBalance"></span></h4>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+  <script>
+    // Initialize web3.js with an Ethereum provider (e.g., MetaMask)
+    if (typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+    } else {
+      web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:8545'));
+    }
+
+    // Replace with your contract's ABI and address
+    const contractABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "manager",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "players",
+      "outputs": [
+        {
+          "internalType": "address payable",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "winner",
+      "outputs": [
+        {
+          "internalType": "address payable",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPlayers",
+      "outputs": [
+        {
+          "internalType": "address payable[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "isParticipant",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getNumberOfParticipants",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "participate",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pickWinner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+   ]; // ABI of your contract
+    const contractAddress = '';
+
+    const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+    function clearPreviousData() {
+    document.getElementById('playersList').innerHTML = '';
+    document.getElementById('isParticipantResult').innerHTML = '';
+    document.getElementById('numParticipants').innerHTML = '';
+    document.getElementById('contractBalance').innerHTML = '';
+    document.getElementById('balanceResult').innerHTML = '';
+    document.getElementById('message').innerHTML = '';
+    document.getElementById('participateRes').innerHTML = '';
+    document.getElementById('winnerInfo').style.display = 'none';
+
+    document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+
+    }
+
+    document.getElementById('participateButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'NONE';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'block';
+
+      // const accounts = await web3.eth.getAccounts();
+      // const yourAccount = accounts[0]; // Use the first available Ethereum account
+      const userAddress = document.getElementById('userAddress').value; // Get the user-entered address
+      document.getElementById('userAddress').value = '';
+      try {
+        const transaction = await contract.methods.participate().send({
+          from: userAddress, // Use the user-entered address
+          value: web3.utils.toWei('1', 'ether'), // Sending 1 ether
+        });
+
+        document.getElementById('participateRes').innerHTML = `Participation Successful! Transaction Hash: ${transaction.transactionHash}`;
+      } catch (error) {
+        document.getElementById('participateRes').innerHTML = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('getPlayersButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'block';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+      try {
+        const players = await contract.methods.getPlayers().call();
+        document.getElementById('playersList').innerHTML = `Players: ${players.join(', ')}`;
+      } catch (error) {
+        document.getElementById('playersList').innerHTML = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('checkParticipantButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'block';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+
+      const checkAddress = document.getElementById('checkParticipantAddress').value;
+      document.getElementById('checkParticipantAddress').value = '';
+
+      try {
+        const isParticipant = await contract.methods.isParticipant(checkAddress).call();
+        if (isParticipant) {
+          document.getElementById('isParticipantResult').innerHTML = `${checkAddress} is a participant.`;
+        } else {
+          document.getElementById('isParticipantResult').innerHTML = `${checkAddress} is not a participant.`;
+        }
+      } catch (error) {
+        document.getElementById('isParticipantResult').innerHTML = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('getNumberOfParticipantsButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'block';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+      try {
+        const numParticipants = await contract.methods.getNumberOfParticipants().call();
+        document.getElementById('numParticipants').innerHTML = `Number of Participants: ${numParticipants}`;
+      } catch (error) {
+        document.getElementById('numParticipants').innerHTML = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('getBalanceButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'block';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+      try {
+        const balance = await web3.eth.getBalance(contractAddress);
+        document.getElementById('contractBalance').innerHTML = `Contract Balance (Wei): ${balance}`;
+      } catch (error) {
+        document.getElementById('contractBalance').innerHTML = `Error: ${error.message}`;
+      }
+    });
+
+    document.getElementById('checkBalanceButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'block';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+      const checkAddress = document.getElementById('checkBalanceAddress').value;
+      document.getElementById('checkBalanceAddress').value = '';
+
+      try {
+        const balanceInWei = await web3.eth.getBalance(checkAddress);
+        const balanceInEther = web3.utils.fromWei(balanceInWei, 'ether');
+        document.getElementById('balanceResult').innerHTML = `Balance of ${checkAddress}: ${balanceInEther} ETH`;
+      } catch (error) {
+        document.getElementById('balanceResult').innerHTML = `Error: ${error.message}`;
+      }
+    });
+    document.getElementById('winnerInfo').style.display = 'none';
+
+    document.getElementById('pickWinnerButton').addEventListener('click', async () => {
+        clearPreviousData();
+        document.getElementById('playersList').style.display = 'none';
+    document.getElementById('isParticipantResult').style.display = 'none';
+    document.getElementById('numParticipants').style.display = 'none';
+    document.getElementById('contractBalance').style.display = 'none';
+    document.getElementById('balanceResult').style.display = 'none';
+    document.getElementById('message').style.display = 'none';
+    document.getElementById('participateRes').style.display = 'none';
+
+      const accounts = await web3.eth.getAccounts();
+      const yourAccount = accounts[0]; // Use the first available Ethereum account
+
+      try {
+        const transaction = await contract.methods.pickWinner().send({
+          from: yourAccount,
+        });
+        document.getElementById('message').innerHTML = `Winner Picked! Transaction Hash: ${transaction.transactionHash}`;
+        // Fetch winner's address and balance
+        const winnerAddress = await contract.methods.winner().call();
+        const winnerBalanceWei = await web3.eth.getBalance(winnerAddress);
+        const winnerBalanceEth = web3.utils.fromWei(winnerBalanceWei, 'ether');
+
+        // Display winner information in the UI
+        document.getElementById('winnerAddress').innerText = winnerAddress;
+        document.getElementById('winnerBalance').innerText = winnerBalanceEth + ' ETH';
+        document.getElementById('winnerInfo').style.display = 'block';
+      } catch (error) {
+        document.getElementById('message').innerHTML = `Error: ${error.message}`;
+      }
+    });
+    document.getElementById('winnerInfo').style.display = 'none';
+  </script>
+</body>
+</html>
